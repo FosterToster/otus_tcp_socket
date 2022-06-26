@@ -1,0 +1,6 @@
+[workspace]
+members = [
+    'shtp',
+    'socket_emu',
+    'socket_client'
+]
