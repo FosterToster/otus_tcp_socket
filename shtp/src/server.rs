@@ -1,6 +1,6 @@
 use crate::{abc::DeviceType};
-use crate::handler::{SHTPHandler, SHTPRequest};
-use std::{io, net};
+use crate::handler::{SHTPHandler, SHTPRequest, SHTPResponse};
+use std::{io, net, io::Write};
 
 pub struct SHTPServer<T> {
     server: net::TcpListener,
@@ -36,15 +36,27 @@ impl<T: SHTPHandler> SHTPServer<T> {
         match SHTPRequest::receive(&mut stream) {
             Ok(request) => {
                 if request.device_type != self.device_type {
-                    print!("Bad device type in request");
-                    return ;
+                    self.respond(
+                        &mut stream, 
+                        SHTPResponse::fail("Bad device type in request")
+                    );
                 }
 
-                self.handler.on_request(&request);
+                self.respond(
+                    &mut stream, 
+                    self.handler.on_request(&request)
+                );
+
             },
             Err(error) => {
-                println!("Error on handling request: {}", error)
+                println!("Error on handling request: {}", error);
             }
+        }
+    }
+
+    fn respond<S: Write>(&self, stream: &mut S, response: SHTPResponse) {
+        if let Err(error) = response.send(stream) {
+            println!("Failed to respond: {}", error);
         }
     }
 }

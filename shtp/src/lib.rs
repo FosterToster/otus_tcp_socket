@@ -27,7 +27,7 @@ pub fn try_handshake<T: Read>(stream: &mut T) -> Result<(), error::SHTPError> {
     }
 }
 
-fn decode_device_type<T: Read>(stream: &mut T) -> Result<abc::DeviceType, error::SHTPError> {
+fn receive_device_type<T: Read>(stream: &mut T) -> Result<abc::DeviceType, error::SHTPError> {
     let mut buf = [0; 4];
     stream.read_exact(&mut buf)?;
     let device_type_len = u32::from_le_bytes(buf);
@@ -51,7 +51,7 @@ fn send_sized<T: Write>(stream: &mut T, buf: &[u8]) -> Result<(), error::SHTPErr
     Ok(())
 }
 
-fn encode_device_type<T: Write>(stream: &mut T, device_type: &abc::DeviceType) -> Result<(), error::SHTPError> {
+fn send_device_type<T: Write>(stream: &mut T, device_type: &abc::DeviceType) -> Result<(), error::SHTPError> {
     let str_device_type: String = device_type.into();
 
     send_sized(stream, &str_device_type.len().to_le_bytes())?;
@@ -60,7 +60,7 @@ fn encode_device_type<T: Write>(stream: &mut T, device_type: &abc::DeviceType) -
     Ok(())
 }
 
-fn decode_message<T: Read>(stream: &mut T) -> Result<String, error::SHTPError> {
+fn read_message<T: Read>(stream: &mut T) -> Result<String, error::SHTPError> {
     let mut buf = [0; 4];
     stream.read_exact(&mut buf)?;
     let message_len = u32::from_le_bytes(buf);
@@ -69,6 +69,16 @@ fn decode_message<T: Read>(stream: &mut T) -> Result<String, error::SHTPError> {
 
     String::from_utf8(buf)
         .map_err(|_| error::SHTPError::BadEncoding)
+}
+
+fn read_result<T: Read>(stream: &mut T) -> Result<bool, error::SHTPError> {
+    let mut buf = [0; 1];
+    stream.read_exact(&mut buf)?;
+
+    match buf[0] {
+        0 => Ok(false),
+        _ => Ok(true)   
+    }
 }
 
 fn encode_message<T: Write>(stream: &mut T, message: String) -> Result<(), error::SHTPError> {
@@ -98,8 +108,8 @@ fn parse_message(message: String) -> (String, Vec<String>) {
 
 pub fn receive_shtp_request<T: Read>(stream: &mut T) -> Result<handler::SHTPRequest, error::SHTPError> {
     try_handshake(stream)?;
-    let device_type = decode_device_type(stream)?;
-    let (command, args) = parse_message( decode_message(stream)? );
+    let device_type = receive_device_type(stream)?;
+    let (command, args) = parse_message( read_message(stream)? );
     Ok(SHTPRequest {
         device_type,
         command,
@@ -124,10 +134,34 @@ pub fn send_shtp_request<T: Write>(stream: &mut T, request: &handler::SHTPReques
     send_sized(stream, "shtp".as_bytes())?;
     send_sized(stream, &[1u8])?;
     // body
-    encode_device_type(stream, &request.device_type)?;
-    encode_message(stream, serialize_message(&request.command, &request.args))?;
+    send_device_type(stream, &request.device_type)?;
+    encode_message(stream, serialize_message(&request.command, &request.args))
+}
+
+pub fn receive_shtp_response<T: Read>(stream: &mut T) -> Result<handler::SHTPResponse, error::SHTPError> {
+    try_handshake(stream)?;
+
+    Ok(
+        handler::SHTPResponse {
+            result: read_result(stream)?,
+            data: read_message(stream)?
+        }
+    )
+}
+
+pub fn send_shtp_response<T: Write>(stream: &mut T, response: &handler::SHTPResponse) -> Result<(), error::SHTPError> {
+    // handshake
+    send_sized(stream, "shtp".as_bytes())?;
+    send_sized(stream, &[1u8])?;
     
-    Ok(())
+    
+    if response.result {
+        send_sized(stream, &[1u8])?;
+    } else {
+        send_sized(stream, &[0u8])?;
+    }
+
+    send_sized(stream, response.data.as_bytes())
 }
 
 #[cfg(test)]
