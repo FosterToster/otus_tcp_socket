@@ -1,8 +1,8 @@
 use crate::error::SHTPError;
-use std::convert::TryFrom;
 use std::cmp::PartialEq;
+use std::convert::TryFrom;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum DeviceType {
     SmartSocket,
 }
@@ -10,7 +10,7 @@ pub enum DeviceType {
 impl From<DeviceType> for String {
     fn from(value: DeviceType) -> Self {
         match value {
-            DeviceType::SmartSocket => String::from("SmartSocket")            
+            DeviceType::SmartSocket => String::from("SmartSocket"),
         }
     }
 }
@@ -18,7 +18,7 @@ impl From<DeviceType> for String {
 impl From<&DeviceType> for String {
     fn from(value: &DeviceType) -> Self {
         match value {
-            DeviceType::SmartSocket => String::from("SmartSocket")            
+            DeviceType::SmartSocket => String::from("SmartSocket"),
         }
     }
 }

@@ -14,5 +14,7 @@ pub enum SHTPError {
     #[error("Stream read/Write error")]
     IoError(#[from] io::Error),
     #[error("Data was not fully exhausted")]
-    NotExhaused
+    NotExhaused,
 }
+
+pub type Result<T> = std::result::Result<T, SHTPError>;
