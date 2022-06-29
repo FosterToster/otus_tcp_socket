@@ -11,12 +11,12 @@ pub struct SHTPClient {
 }
 
 impl SHTPClient {
-    pub fn new(host: String, port: u16, device_type: DeviceType) -> Result<Self> {
-        Ok(Self {
+    pub fn new(host: String, port: u16, device_type: DeviceType) -> Self {
+        Self {
             host,
             port,
             device_type,
-        })
+        }
     }
 
     fn connect(&self) -> Result<TcpStream> {
