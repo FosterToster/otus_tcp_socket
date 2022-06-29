@@ -8,6 +8,7 @@ mod server;
 mod utils;
 
 pub use client::SHTPClient;
+pub use device_type::DeviceType;
 pub use error::Result;
 pub use handler::{SHTPHandler, SHTPRequest, SHTPResponse};
 pub use server::SHTPServer;
