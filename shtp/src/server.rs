@@ -9,7 +9,7 @@ pub struct SHTPServer<T> {
 }
 
 impl<T: SHTPHandler> SHTPServer<T> {
-    pub fn new(host: &str, port: &u16, device_type: DeviceType, handler: T) -> io::Result<Self> {
+    pub fn new(host: String, port: u16, device_type: DeviceType, handler: T) -> io::Result<Self> {
         let server = net::TcpListener::bind(format!("{}:{}", host, port))?;
 
         Ok(Self {
@@ -45,6 +45,7 @@ impl<T: SHTPHandler> SHTPServer<T> {
                 self.respond(&mut stream, self.handler.on_request(&request));
             }
             Err(error) => {
+                self.respond(&mut stream, SHTPResponse::fail(&format!("{}", error)));
                 println!("Error on handling request: {}", error);
             }
         }
