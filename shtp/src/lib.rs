@@ -21,7 +21,7 @@ pub fn send_shtp_request<T: Write>(stream: &mut T, request: &handler::SHTPReques
     send_sized(stream, &[1u8])?;
     // body
     send_device_type(stream, &request.device_type)?;
-    encode_message(stream, serialize_message(&request.command, &request.args))
+    send_message(stream, serialize_message(&request.command, &request.args))
 }
 
 pub fn receive_shtp_request<T: Read>(stream: &mut T) -> Result<handler::SHTPRequest> {
@@ -49,7 +49,7 @@ pub fn send_shtp_response<T: Write>(
         send_sized(stream, &[0u8])?;
     }
 
-    send_sized(stream, response.data.as_bytes())
+    send_message(stream, response.data.clone())
 }
 
 pub fn receive_shtp_response<T: Read>(stream: &mut T) -> Result<handler::SHTPResponse> {

@@ -6,12 +6,12 @@ use std::io::{Read, Write};
 const DELIMITER: char = '|';
 
 pub fn try_handshake<T: Read>(stream: &mut T) -> Result<()> {
-    let mut buf: [u8; 4] = [0, 0, 0, 0];
+    let mut buf = [0; 4];
     stream.read_exact(&mut buf)?;
 
     match &buf {
         b"shtp" => {
-            let mut buf: [u8; 1] = [0];
+            let mut buf = [0];
             stream.read_exact(&mut buf)?;
             match &buf {
                 [1u8] => Ok(()),
@@ -23,10 +23,11 @@ pub fn try_handshake<T: Read>(stream: &mut T) -> Result<()> {
 }
 
 pub fn receive_device_type<T: Read>(stream: &mut T) -> Result<device_type::DeviceType> {
-    let mut buf = [0; 4];
+    let mut buf = [0; std::mem::size_of::<usize>()];
     stream.read_exact(&mut buf)?;
-    let device_type_len = u32::from_le_bytes(buf);
-    let mut buf = vec![0; device_type_len as _];
+    let device_type_len = usize::from_le_bytes(buf);
+
+    let mut buf = vec![0; device_type_len];
     stream.read_exact(&mut buf)?;
 
     device_type::DeviceType::try_from(
@@ -37,32 +38,27 @@ pub fn receive_device_type<T: Read>(stream: &mut T) -> Result<device_type::Devic
 }
 
 pub fn send_sized<T: Write>(stream: &mut T, buf: &[u8]) -> Result<()> {
-    let size = stream.write(buf)?;
-
-    if size != buf.len() {
-        return Err(error::SHTPError::NotExhaused);
-    }
-
-    Ok(())
+    Ok(stream.write_all(buf)?)
 }
 
 pub fn send_device_type<T: Write>(
     stream: &mut T,
     device_type: &device_type::DeviceType,
 ) -> Result<()> {
-    let str_device_type: String = device_type.into();
+    let str_device_type = String::from(device_type);
+    let device_type_bytes = str_device_type.as_bytes();
 
-    send_sized(stream, &str_device_type.len().to_le_bytes())?;
-    send_sized(stream, str_device_type.as_bytes())?;
+    send_sized(stream, &device_type_bytes.len().to_le_bytes())?;
+    send_sized(stream, device_type_bytes)?;
 
     Ok(())
 }
 
 pub fn read_message<T: Read>(stream: &mut T) -> Result<String> {
-    let mut buf = [0; 4];
+    let mut buf = [0; std::mem::size_of::<usize>()];
     stream.read_exact(&mut buf)?;
-    let message_len = u32::from_le_bytes(buf);
-    let mut buf = vec![0; message_len as _];
+    let message_len = usize::from_le_bytes(buf);
+    let mut buf = vec![0; message_len];
     stream.read_exact(&mut buf)?;
 
     String::from_utf8(buf).map_err(|_| error::SHTPError::BadEncoding)
@@ -78,9 +74,11 @@ pub fn read_result<T: Read>(stream: &mut T) -> Result<bool> {
     }
 }
 
-pub fn encode_message<T: Write>(stream: &mut T, message: String) -> Result<()> {
-    send_sized(stream, &message.len().to_le_bytes())?;
-    send_sized(stream, message.as_bytes())?;
+pub fn send_message<T: Write>(stream: &mut T, message: String) -> Result<()> {
+    let message_bytes = message.as_bytes();
+
+    send_sized(stream, &message_bytes.len().to_le_bytes())?;
+    send_sized(stream, message_bytes)?;
 
     Ok(())
 }

@@ -19,11 +19,11 @@ fn main() {
         let mut command = String::new();
         io::stdin().read_line(&mut command).unwrap();
 
-        if command == "exit!" {
+        if command == "exit!\r\n" {
             break;
         }
 
-        match client.send_any_command(&command) {
+        match client.send_any_command(command.strip_suffix("\r\n").unwrap()) {
             Ok(response) => match response.observe() {
                 Ok(result) => {
                     println!("<< done: {}", result)
@@ -37,6 +37,4 @@ fn main() {
             }
         }
     }
-
-    println!("Hello, world!");
 }
