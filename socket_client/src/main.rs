@@ -9,7 +9,7 @@ fn main() {
     let mut client = client::SHTPElectricSocketClient::new(HOST.to_string(), PORT);
 
     println!("Welcome to electric socket client!");
-    println!("Welcome to electric socket client!");
+    println!("=======================================");
     println!("Type any command you want to see result");
     println!("Or type 'exit!' instead to exit");
 
