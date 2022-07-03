@@ -23,7 +23,12 @@ fn main() {
             break;
         }
 
-        match client.send_any_command(command.strip_suffix("\r\n").unwrap()) {
+        let mut split = command.strip_suffix("\r\n").unwrap().split_whitespace();
+
+        let command = split.next().unwrap();
+        let args = split.map(|v| { v.to_string() }).collect::<Vec<String>>();
+
+        match client.send_any_command(command, args) {
             Ok(response) => match response.observe() {
                 Ok(result) => {
                     println!("<< done: {}", result)
