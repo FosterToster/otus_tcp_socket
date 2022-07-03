@@ -1,5 +1,5 @@
+use socket_client::{client, HOST, PORT};
 use std::io::{self, Write};
-use socket_client::{HOST, PORT, client};
 
 fn main() {
     let mut client = client::SHTPElectricSocketClient::new(HOST.to_string(), PORT);
