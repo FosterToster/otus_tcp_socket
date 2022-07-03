@@ -93,7 +93,7 @@ pub fn parse_message(message: String) -> (String, Vec<String>) {
         .for_each(|(i, member)| {
             if i == 0 {
                 command = member.to_string()
-            } else {
+            } else if !member.is_empty() {
                 args.push(member.to_string())
             }
         });
