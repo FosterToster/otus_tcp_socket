@@ -26,7 +26,7 @@ impl<T: SHTPHandler> SHTPServer<T> {
                     self.handle_connection(stream);
                 }
                 Err(error) => {
-                    print!("Network error: {}", error);
+                    println!("Network error: {}", error);
                 }
             }
         }
@@ -40,6 +40,7 @@ impl<T: SHTPHandler> SHTPServer<T> {
                         &mut stream,
                         SHTPResponse::fail("Bad device type in request"),
                     );
+                    return ;
                 }
 
                 self.respond(&mut stream, self.handler.on_request(&request));
