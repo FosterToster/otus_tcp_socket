@@ -26,7 +26,7 @@ fn main() {
         let mut split = command.strip_suffix("\r\n").unwrap().split_whitespace();
 
         let command = split.next().unwrap();
-        let args = split.map(|v| { v.to_string() }).collect::<Vec<String>>();
+        let args = split.map(|v| v.to_string()).collect::<Vec<String>>();
 
         match client.send_any_command(command, args) {
             Ok(response) => match response.observe() {

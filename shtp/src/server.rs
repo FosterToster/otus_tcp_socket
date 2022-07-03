@@ -40,7 +40,7 @@ impl<T: SHTPHandler> SHTPServer<T> {
                         &mut stream,
                         SHTPResponse::fail("Bad device type in request"),
                     );
-                    return ;
+                    return;
                 }
 
                 self.respond(&mut stream, self.handler.on_request(&request));

@@ -9,7 +9,11 @@ impl SHTPElectricSocketClient {
         }
     }
 
-    pub fn send_any_command(&mut self, command: &str, args: Vec<String>) -> shtp::Result<shtp::SHTPResponse> {
+    pub fn send_any_command(
+        &mut self,
+        command: &str,
+        args: Vec<String>,
+    ) -> shtp::Result<shtp::SHTPResponse> {
         self.client.send_command(command.to_string(), args)
     }
 }

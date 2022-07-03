@@ -1,36 +1,32 @@
 use rand::Rng;
 use shtp::SHTPHandler;
-use std::fmt::{Display, Debug};
 use std::cell::Cell;
 use std::cmp::PartialEq;
+use std::fmt::{Debug, Display};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum ElectricSocketState {
     On,
-    Off
+    Off,
 }
 
 impl Display for ElectricSocketState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f,"{}", String::from(*self))
+        write!(f, "{}", String::from(*self))
     }
 }
 
 impl From<ElectricSocketState> for String {
     fn from(val: ElectricSocketState) -> Self {
         match val {
-            ElectricSocketState::On => {
-                "on".to_string()
-            },
-            ElectricSocketState::Off => {
-                "off".to_string()
-            }
+            ElectricSocketState::On => "on".to_string(),
+            ElectricSocketState::Off => "off".to_string(),
         }
     }
 }
 
 pub struct ElectricSocket {
-    state: Cell<ElectricSocketState>
+    state: Cell<ElectricSocketState>,
 }
 
 impl Default for ElectricSocket {
@@ -41,7 +37,9 @@ impl Default for ElectricSocket {
 
 impl ElectricSocket {
     fn new(state: ElectricSocketState) -> Self {
-        Self { state: Cell::new(state) }
+        Self {
+            state: Cell::new(state),
+        }
     }
 
     fn onoff_state(&self, state: ElectricSocketState) -> ElectricSocketState {
@@ -58,12 +56,8 @@ impl ElectricSocket {
 
     fn get_power_consumption_watt(&self) -> i32 {
         match self.get_state() {
-            ElectricSocketState::On => {
-                rand::thread_rng().gen_range(0..1000)
-            },
-            _ => {
-                0
-            }
+            ElectricSocketState::On => rand::thread_rng().gen_range(0..1000),
+            _ => 0,
         }
     }
 
@@ -77,37 +71,58 @@ impl SHTPHandler for ElectricSocket {
         match request.command.as_ref() {
             "onoff" => {
                 if request.args.len() != 1 {
-                    return shtp::SHTPResponse::fail("single argument 'state' is required for this command");
+                    return shtp::SHTPResponse::fail(
+                        "single argument 'state' is required for this command",
+                    );
                 }
 
                 let previous_state = match request.args[0].as_ref() {
                     "on" => {
                         println!("switching state to 'on'");
                         self.switch_on()
-                    },
+                    }
                     "off" => {
                         println!("switching state to 'off'");
                         self.switch_off()
-                    },
+                    }
                     any => {
                         println!("unknown state");
-                        return shtp::SHTPResponse::fail(format!("state '{}' is not recognized", any).as_ref());
+                        return shtp::SHTPResponse::fail(
+                            format!("state '{}' is not recognized", any).as_ref(),
+                        );
                     }
                 };
 
-                return shtp::SHTPResponse::done(format!("socket state switched from '{}' to '{}'", previous_state, self.get_state()).as_ref())
-            },
+                return shtp::SHTPResponse::done(
+                    format!(
+                        "socket state switched from '{}' to '{}'",
+                        previous_state,
+                        self.get_state()
+                    )
+                    .as_ref(),
+                );
+            }
             "consumption" => {
                 println!("returning a power consumption");
-                return shtp::SHTPResponse::done(format!("current power consumption is {} watt", self.get_power_consumption_watt()).as_ref());
-            },
+                return shtp::SHTPResponse::done(
+                    format!(
+                        "current power consumption is {} watt",
+                        self.get_power_consumption_watt()
+                    )
+                    .as_ref(),
+                );
+            }
             "state" => {
                 println!("returning current state");
-                return shtp::SHTPResponse::done(format!("current socket state is '{}'", self.get_state()).as_ref());
-            },
+                return shtp::SHTPResponse::done(
+                    format!("current socket state is '{}'", self.get_state()).as_ref(),
+                );
+            }
             _ => {
                 println!("unknown command");
-                return shtp::SHTPResponse::fail(format!("unknown command '{}'", request.command).as_ref());
+                return shtp::SHTPResponse::fail(
+                    format!("unknown command '{}'", request.command).as_ref(),
+                );
             }
         }
     }
