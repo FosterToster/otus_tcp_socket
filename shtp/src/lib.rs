@@ -60,12 +60,3 @@ pub fn receive_shtp_response<T: Read>(stream: &mut T) -> Result<handler::SHTPRes
         data: read_message(stream)?,
     })
 }
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        let result = 2 + 2;
-        assert_eq!(result, 4);
-    }
-}

@@ -1,9 +1,5 @@
 use std::io::{self, Write};
-
-mod client;
-
-const HOST: &str = "127.0.0.1";
-const PORT: u16 = 6411;
+use socket_client::{HOST, PORT, client};
 
 fn main() {
     let mut client = client::SHTPElectricSocketClient::new(HOST.to_string(), PORT);
