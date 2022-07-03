@@ -10,7 +10,7 @@ fn main() {
         HOST.to_string(),
         PORT,
         DeviceType::SmartSocket,
-        ElectricSocket {},
+        ElectricSocket::default(),
     ) {
         Ok(server) => {
             println!("Listening on {}:{}", HOST, PORT);
