@@ -77,7 +77,7 @@ impl SHTPHandler for ElectricSocket {
         match request.command.as_ref() {
             "onoff" => {
                 if request.args.len() != 1 {
-                    return shtp::SHTPResponse::fail("1 argument 'state' required for this command");
+                    return shtp::SHTPResponse::fail("single argument 'state' is required for this command");
                 }
 
                 let previous_state = match request.args[0].as_ref() {
