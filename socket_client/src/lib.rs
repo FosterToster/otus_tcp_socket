@@ -9,8 +9,8 @@ mod tests {
     use crate::{HOST, PORT};
     use shtp::SHTPResponse;
 
-    fn get_client() -> client::SHTPElectricSocketClient {
-        client::SHTPElectricSocketClient::new(HOST.to_string(), PORT)
+    async fn get_client() -> client::SHTPElectricSocketClient {
+        client::SHTPElectricSocketClient::new(HOST.to_string(), PORT).await
     }
 
     fn observe_result(response: SHTPResponse) {
@@ -19,53 +19,69 @@ mod tests {
         }
     }
 
-    #[test]
-    fn get_state() {
-        observe_result(get_client().send_any_command("state", vec![]).unwrap())
-    }
-
-    #[test]
-    fn get_consumption() {
+    // #[test]
+    #[tokio::test]
+    async fn get_state() {
         observe_result(
             get_client()
+                .await
+                .send_any_command("state", vec![])
+                .await
+                .unwrap(),
+        )
+    }
+
+    #[tokio::test]
+    async fn get_consumption() {
+        observe_result(
+            get_client()
+                .await
                 .send_any_command("consumption", vec![])
+                .await
                 .unwrap(),
         )
     }
 
-    #[test]
-    fn set_state_on() {
+    #[tokio::test]
+    async fn set_state_on() {
         observe_result(
             get_client()
+                .await
                 .send_any_command("onoff", vec!["on".to_string()])
+                .await
                 .unwrap(),
         )
     }
 
-    #[test]
-    fn set_state_off() {
+    #[tokio::test]
+    async fn set_state_off() {
         observe_result(
             get_client()
+                .await
                 .send_any_command("onoff", vec!["off".to_string()])
+                .await
                 .unwrap(),
         )
     }
 
-    #[test]
+    #[tokio::test]
     #[should_panic]
-    fn set_not_state() {
+    async fn set_not_state() {
         observe_result(
             get_client()
+                .await
                 .send_any_command("onoff", vec!["bad_state".to_string()])
+                .await
                 .unwrap(),
         )
     }
 
-    #[test]
+    #[tokio::test]
     #[should_panic]
-    fn set_state_bad_args_count() {
+    async fn set_state_bad_args_count() {
         observe_result(
             get_client()
+                .await
                 .send_any_command(
                     "onoff",
                     vec![
@@ -73,22 +89,31 @@ mod tests {
                         "bad_state_second".to_string(),
                     ],
                 )
+                .await
                 .unwrap(),
         )
     }
 
-    #[test]
+    #[tokio::test]
     #[should_panic]
-    fn set_state_no_args() {
-        observe_result(get_client().send_any_command("onoff", vec![]).unwrap())
-    }
-
-    #[test]
-    #[should_panic]
-    fn bad_command() {
+    async fn set_state_no_args() {
         observe_result(
             get_client()
+                .await
+                .send_any_command("onoff", vec![])
+                .await
+                .unwrap(),
+        )
+    }
+
+    #[tokio::test]
+    #[should_panic]
+    async fn bad_command() {
+        observe_result(
+            get_client()
+                .await
                 .send_any_command("bad_command", vec!["bad_state".to_string()])
+                .await
                 .unwrap(),
         )
     }

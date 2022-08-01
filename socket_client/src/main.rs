@@ -1,8 +1,9 @@
 use socket_client::{client, HOST, PORT};
 use std::io::{self, Write};
 
-fn main() {
-    let mut client = client::SHTPElectricSocketClient::new(HOST.to_string(), PORT);
+#[tokio::main]
+async fn main() {
+    let mut client = client::SHTPElectricSocketClient::new(HOST.to_string(), PORT).await;
 
     println!("Welcome to electric socket client!");
     println!("=======================================");
@@ -24,7 +25,7 @@ fn main() {
         let command = split.next().unwrap();
         let args = split.map(|v| v.to_string()).collect::<Vec<String>>();
 
-        match client.send_any_command(command, args) {
+        match client.send_any_command(command, args).await {
             Ok(response) => match response.observe() {
                 Ok(result) => {
                     println!("<< done: {}", result)

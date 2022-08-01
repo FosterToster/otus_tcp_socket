@@ -1,7 +1,9 @@
 use crate::device_type::DeviceType;
 use crate::Result;
 use crate::{receive_shtp_request, receive_shtp_response, send_shtp_request, send_shtp_response};
-use std::io::{Read, Write};
+// use std::io::{Read, Write};
+use std::marker::Unpin;
+use tokio::io::{AsyncRead, AsyncWrite};
 
 pub struct SHTPRequest {
     pub device_type: DeviceType,
@@ -10,12 +12,12 @@ pub struct SHTPRequest {
 }
 
 impl SHTPRequest {
-    pub fn send<T: Write>(&self, stream: &mut T) -> Result<()> {
-        send_shtp_request(stream, self)
+    pub async fn send<T: AsyncWrite + Unpin>(&self, stream: &mut T) -> Result<()> {
+        send_shtp_request(stream, self).await
     }
 
-    pub fn receive<T: Read>(stream: &mut T) -> Result<Self> {
-        receive_shtp_request(stream)
+    pub async fn receive<T: AsyncRead + Unpin>(stream: &mut T) -> Result<Self> {
+        receive_shtp_request(stream).await
     }
 }
 
@@ -25,26 +27,26 @@ pub struct SHTPResponse {
 }
 
 impl SHTPResponse {
-    pub fn done(data: &str) -> Self {
+    pub async fn done(data: &str) -> Self {
         Self {
             result: true,
             data: data.to_string(),
         }
     }
 
-    pub fn fail(data: &str) -> Self {
+    pub async fn fail(data: &str) -> Self {
         Self {
             result: false,
             data: data.to_string(),
         }
     }
 
-    pub fn send<T: Write>(&self, stream: &mut T) -> Result<()> {
-        send_shtp_response(stream, self)
+    pub async fn send<T: AsyncWrite + Unpin>(&self, stream: &mut T) -> Result<()> {
+        send_shtp_response(stream, self).await
     }
 
-    pub fn receive<T: Read>(&self, stream: &mut T) -> Result<Self> {
-        receive_shtp_response(stream)
+    pub async fn receive<T: AsyncRead + Unpin>(&self, stream: &mut T) -> Result<Self> {
+        receive_shtp_response(stream).await
     }
 
     pub fn observe(&self) -> std::result::Result<&String, &String> {
@@ -56,6 +58,7 @@ impl SHTPResponse {
     }
 }
 
+#[async_trait::async_trait]
 pub trait SHTPHandler {
-    fn on_request(&self, request: &SHTPRequest) -> SHTPResponse;
+    async fn on_request(&self, request: &SHTPRequest) -> SHTPResponse;
 }
