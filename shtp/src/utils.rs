@@ -2,6 +2,7 @@ use crate::device_type;
 use crate::error;
 use crate::Result;
 use std::io::{Read, Write};
+use std::fmt::Write as _;
 
 const DELIMITER: char = '|';
 
@@ -105,7 +106,7 @@ pub fn serialize_message(command: &String, args: &Vec<String>) -> String {
     let mut result = String::new();
     std::iter::once(command)
         .chain(args)
-        .for_each(|member| result.push_str(&format!("{}{}", member, DELIMITER)));
+        .for_each(|member| write!(result, "{}{}", member, DELIMITER).unwrap());
 
     result
 }
